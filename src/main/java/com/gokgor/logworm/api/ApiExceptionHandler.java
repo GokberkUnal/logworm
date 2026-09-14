@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.gokgor.logworm.kafka.KafkaRequestException;
 import com.gokgor.logworm.message.InvalidQueryException;
+import com.gokgor.logworm.stream.TooManyStreamsException;
 import com.gokgor.logworm.topic.TopicNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidQueryException.class)
     public ProblemDetail invalidQuery(InvalidQueryException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(TooManyStreamsException.class)
+    public ProblemDetail tooManyStreams(TooManyStreamsException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     }
 
     @ExceptionHandler(KafkaRequestException.class)

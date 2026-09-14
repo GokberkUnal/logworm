@@ -16,7 +16,9 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest(properties = "logworm.demo-producer.enabled=false")
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"logworm.demo-producer.enabled=false", "logworm.stream.max-concurrent=2"})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @EmbeddedKafka(

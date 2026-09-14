@@ -10,17 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.stereotype.Service;
 
+import com.gokgor.logworm.kafka.BrowserConsumerFactory;
 import com.gokgor.logworm.kafka.LogwormKafkaProperties;
-import com.gokgor.logworm.topic.TopicNotFoundException;
+import com.gokgor.logworm.kafka.PartitionResolver;
 
 /**
  * Reads records with a short-lived, group-less consumer per request:
@@ -32,19 +28,19 @@ public class MessageService {
 
     private static final Duration POLL = Duration.ofMillis(250);
 
-    private final Map<String, Object> consumerConfig;
+    private final BrowserConsumerFactory consumerFactory;
     private final Duration timeout;
     private final MessageDecoder decoder;
 
-    public MessageService(KafkaProperties kafkaProperties, LogwormKafkaProperties logwormProperties, MessageDecoder decoder) {
-        this.consumerConfig = consumerConfig(kafkaProperties);
-        this.timeout = logwormProperties.requestTimeout();
+    public MessageService(BrowserConsumerFactory consumerFactory, LogwormKafkaProperties properties, MessageDecoder decoder) {
+        this.consumerFactory = consumerFactory;
+        this.timeout = properties.requestTimeout();
         this.decoder = decoder;
     }
 
     public MessagePage read(String topic, MessageQuery query) {
-        try (Consumer<byte[], byte[]> consumer = new KafkaConsumer<>(consumerConfig)) {
-            List<TopicPartition> partitions = resolvePartitions(consumer, topic, query.partition());
+        try (Consumer<byte[], byte[]> consumer = consumerFactory.create("logworm-browser")) {
+            List<TopicPartition> partitions = PartitionResolver.resolve(consumer, topic, query.partition(), timeout);
             consumer.assign(partitions);
 
             Map<TopicPartition, Long> beginning = consumer.beginningOffsets(partitions, timeout);
@@ -109,30 +105,4 @@ public class MessageService {
             Comparator.comparingLong((RawMessage m) -> m.record().timestamp()).reversed()
                     .thenComparing(Comparator.comparingLong((RawMessage m) -> m.record().offset()).reversed())
                     .thenComparingInt(m -> m.record().partition());
-
-    private List<TopicPartition> resolvePartitions(Consumer<byte[], byte[]> consumer, String topic, Integer partition) {
-        List<PartitionInfo> infos = consumer.partitionsFor(topic, timeout);
-        if (infos == null || infos.isEmpty()) {
-            throw new TopicNotFoundException(topic);
-        }
-        if (partition == null) {
-            return infos.stream().map(i -> new TopicPartition(topic, i.partition())).toList();
-        }
-        boolean exists = infos.stream().anyMatch(i -> i.partition() == partition);
-        if (!exists) {
-            throw new InvalidQueryException("Topic " + topic + " has no partition " + partition);
-        }
-        return List.of(new TopicPartition(topic, partition));
-    }
-
-    private static Map<String, Object> consumerConfig(KafkaProperties kafkaProperties) {
-        Map<String, Object> config = new HashMap<>(kafkaProperties.buildConsumerProperties());
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        config.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, false);
-        config.put(ConsumerConfig.CLIENT_ID_CONFIG, "logworm-browser");
-        config.remove(ConsumerConfig.GROUP_ID_CONFIG); // manual assignment, no group membership
-        return config;
-    }
 }

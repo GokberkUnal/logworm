@@ -3,21 +3,26 @@ package com.gokgor.logworm.message;
 import java.util.function.Predicate;
 
 /** Builds the record predicate for a query's key / value / header filters. */
-final class MessageFilter {
+public final class MessageFilter {
 
     private MessageFilter() {
     }
 
-    static Predicate<RawMessage> from(MessageQuery query) {
+    public static Predicate<RawMessage> from(MessageQuery query) {
+        return from(query.key(), query.value(), query.header());
+    }
+
+    /** Each argument may be null (no constraint); substrings for key/value, {@code name} or {@code name=value} for header. */
+    public static Predicate<RawMessage> from(String key, String value, String header) {
         Predicate<RawMessage> p = m -> true;
-        if (query.key() != null) {
-            p = p.and(m -> m.key() != null && m.key().contains(query.key()));
+        if (key != null) {
+            p = p.and(m -> m.key() != null && m.key().contains(key));
         }
-        if (query.value() != null) {
-            p = p.and(m -> m.value() != null && m.value().contains(query.value()));
+        if (value != null) {
+            p = p.and(m -> m.value() != null && m.value().contains(value));
         }
-        if (query.header() != null) {
-            p = p.and(headerPredicate(query.header()));
+        if (header != null) {
+            p = p.and(headerPredicate(header));
         }
         return p;
     }
