@@ -22,11 +22,11 @@ A [Kadeck](https://www.xeotek.com/kadeck/)-like Kafka monitoring and inspection 
 - [x] Simple test log producer (`DemoLogProducer`, `demo-logs` topic)
 - [x] Health check: Kafka connectivity via Actuator (`KafkaHealthIndicator`)
 
-### Phase 1 — Cluster & Topic Discovery
-- [ ] Cluster info via `AdminClient` (brokers, controller, version)
-- [ ] Topic listing: name, partition count, replication factor
-- [ ] Topic detail: partitions, earliest/latest offsets, approximate message count
-- [ ] REST API: `GET /api/cluster`, `GET /api/topics`, `GET /api/topics/{name}`
+### Phase 1 — Cluster & Topic Discovery ✅
+- [x] Cluster info via `AdminClient` (brokers, controller, metadata version)
+- [x] Topic listing: name, partition count, replication factor
+- [x] Topic detail: partitions, earliest/latest offsets, approximate message count
+- [x] REST API: `GET /api/cluster`, `GET /api/topics`, `GET /api/topics/{name}`
 
 ### Phase 2 — Message Browsing
 - [ ] Read messages from a topic/partition by offset range
@@ -75,3 +75,15 @@ docker compose up -d
 # Tests
 ./mvnw test
 ```
+
+## API
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/cluster` | Cluster id, controller, metadata version, brokers |
+| `GET /api/topics` | All topics (internal included) with partition count and replication factor |
+| `GET /api/topics/{name}` | Partition leaders/replicas/ISR, earliest & latest offsets, approximate message count |
+| `GET /actuator/health` | Liveness, readiness and Kafka connectivity |
+
+Errors follow RFC 9457 (`application/problem+json`): unknown topic → `404`, Kafka unreachable/timeout → `503`.
+AdminClient request timeout is configurable via `logworm.kafka.request-timeout` (default `5s`).

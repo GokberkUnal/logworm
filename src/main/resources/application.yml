@@ -17,3 +17,5 @@ logworm:
   demo-producer:
     enabled: true
     topic: demo-logs
+  kafka:
+    request-timeout: 5s
