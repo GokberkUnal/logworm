@@ -76,6 +76,12 @@ docker compose up -d
 ./mvnw test
 ```
 
+### Testing
+
+- **Unit tests** (`*ServiceTest`, `KafkaFuturesTest`): `AdminClient` is mocked with Mockito; no broker needed.
+- **Controller slice tests** (`*ControllerTest`): `@WebMvcTest` with a mocked service, cover JSON shape and error mapping.
+- **Integration tests** (`*IntegrationTest`): full Spring context against an in-process KRaft broker via `@EmbeddedKafka` (see `IntegrationTest` meta-annotation). No Docker required.
+
 ## API
 
 | Endpoint | Description |

@@ -1,0 +1,7 @@
+# Test profile (activated by @IntegrationTest); layered on top of the main application.yml. The embedded Kafka broker is extremely chatty at INFO.
+logging:
+  level:
+    org.apache.kafka: WARN
+    kafka: WARN
+    state.change.logger: WARN
+    org.springframework.kafka: WARN
