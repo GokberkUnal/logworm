@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: logworm
+  kafka:
+    bootstrap-servers: localhost:9092
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logworm:
+  demo-producer:
+    enabled: true
+    topic: demo-logs
