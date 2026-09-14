@@ -5,6 +5,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.gokgor.logworm.consumergroup.ConsumerGroupNotFoundException;
 import com.gokgor.logworm.kafka.KafkaRequestException;
 import com.gokgor.logworm.message.InvalidQueryException;
 import com.gokgor.logworm.stream.TooManyStreamsException;
@@ -19,6 +20,11 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(TopicNotFoundException.class)
     public ProblemDetail topicNotFound(TopicNotFoundException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(ConsumerGroupNotFoundException.class)
+    public ProblemDetail groupNotFound(ConsumerGroupNotFoundException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 

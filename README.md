@@ -41,11 +41,11 @@ A [Kadeck](https://www.xeotek.com/kadeck/)-like Kafka monitoring and inspection 
 - [x] Filtering on the stream (same key/value/header filters as browsing)
 - [x] Backpressure: per-stream rate limit with `stats` events, jump-to-end when the consumer falls too far behind, bounded number of concurrent streams
 
-### Phase 4 — Consumer Group Monitoring
-- [ ] List consumer groups and their states
-- [ ] Partition assignments and committed offsets per group
-- [ ] Lag calculation (end offset − committed offset)
-- [ ] REST API: `GET /api/consumer-groups`, `GET /api/consumer-groups/{id}`
+### Phase 4 — Consumer Group Monitoring ✅
+- [x] List consumer groups and their states
+- [x] Partition assignments and committed offsets per group
+- [x] Lag calculation (end offset − committed offset)
+- [x] REST API: `GET /api/consumer-groups`, `GET /api/consumer-groups/{id}`
 
 ### Phase 5 — Web UI
 - [ ] Technology choice (React SPA vs. Thymeleaf + HTMX)
@@ -91,6 +91,8 @@ docker compose up -d
 | `GET /api/topics/{name}` | Partition leaders/replicas/ISR, earliest & latest offsets, approximate message count |
 | `GET /api/topics/{name}/messages` | Browse records (see below) |
 | `GET /api/topics/{name}/stream` | Live tail as Server-Sent Events (see below) |
+| `GET /api/consumer-groups` | All groups: state, type, member count, topics, total lag |
+| `GET /api/consumer-groups/{id}` | Coordinator, members with assignments, per-partition committed/end offset and lag |
 | `GET /actuator/health` | Liveness, readiness and Kafka connectivity |
 
 ### Browsing messages
@@ -132,5 +134,9 @@ At most 20 streams may be open at once (`logworm.stream.max-concurrent`); beyond
 curl -N 'localhost:8080/api/topics/demo-logs/stream?value=ERROR&rate=50'
 ```
 
-Errors follow RFC 9457 (`application/problem+json`): unknown topic → `404`, invalid query (bad limit, offset without partition, unknown partition) → `400`, Kafka unreachable/timeout → `503`.
+### Consumer groups
+
+Lag is `endOffset − committedOffset` per partition (never negative). Partitions a group is assigned to but has never committed show `committedOffset: null` and `lag: null`. Listing all groups costs a fixed four AdminClient round trips regardless of group count. A group the broker reports as `Dead` with no members and no committed offsets is treated as not found (`404`).
+
+Errors follow RFC 9457 (`application/problem+json`): unknown topic or consumer group → `404`, invalid query (bad limit, offset without partition, unknown partition) → `400`, Kafka unreachable/timeout → `503`.
 AdminClient request timeout is configurable via `logworm.kafka.request-timeout` (default `5s`).
