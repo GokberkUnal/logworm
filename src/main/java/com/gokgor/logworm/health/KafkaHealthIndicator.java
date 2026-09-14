@@ -10,7 +10,7 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-import com.gokgor.logworm.kafka.KafkaProperties;
+import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 
 /**
  * Shows up as the "kafka" component under /actuator/health.
@@ -22,7 +22,7 @@ public class KafkaHealthIndicator implements HealthIndicator {
     private final AdminClient adminClient;
     private final Duration timeout;
 
-    public KafkaHealthIndicator(AdminClient adminClient, KafkaProperties properties) {
+    public KafkaHealthIndicator(AdminClient adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }

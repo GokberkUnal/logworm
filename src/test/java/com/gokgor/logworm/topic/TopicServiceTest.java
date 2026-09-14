@@ -30,7 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import com.gokgor.logworm.kafka.KafkaProperties;
+import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 
 class TopicServiceTest {
 
@@ -42,7 +42,7 @@ class TopicServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TopicService(adminClient, new KafkaProperties(Duration.ofSeconds(1)));
+        service = new TopicService(adminClient, new LogwormKafkaProperties(Duration.ofSeconds(1)));
     }
 
     @Test

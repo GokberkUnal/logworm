@@ -23,7 +23,7 @@ import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.stereotype.Service;
 
-import com.gokgor.logworm.kafka.KafkaProperties;
+import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 import com.gokgor.logworm.kafka.KafkaRequestException;
 
 @Service
@@ -32,7 +32,7 @@ public class TopicService {
     private final AdminClient adminClient;
     private final Duration timeout;
 
-    public TopicService(AdminClient adminClient, KafkaProperties properties) {
+    public TopicService(AdminClient adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }

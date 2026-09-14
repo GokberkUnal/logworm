@@ -28,13 +28,13 @@ A [Kadeck](https://www.xeotek.com/kadeck/)-like Kafka monitoring and inspection 
 - [x] Topic detail: partitions, earliest/latest offsets, approximate message count
 - [x] REST API: `GET /api/cluster`, `GET /api/topics`, `GET /api/topics/{name}`
 
-### Phase 2 — Message Browsing
-- [ ] Read messages from a topic/partition by offset range
-- [ ] Fetch the latest N messages (Kadeck's core feature)
-- [ ] Key/value deserialization: String and JSON support
-- [ ] Display headers, timestamp, offset, and partition metadata
-- [ ] Basic filtering: by key, header, or content
-- [ ] REST API: `GET /api/topics/{name}/messages`
+### Phase 2 — Message Browsing ✅
+- [x] Read messages from a topic/partition by offset range
+- [x] Fetch the latest N messages (Kadeck's core feature)
+- [x] Key/value deserialization: String and JSON support
+- [x] Display headers, timestamp, offset, and partition metadata
+- [x] Basic filtering: by key, header, or content
+- [x] REST API: `GET /api/topics/{name}/messages`
 
 ### Phase 3 — Live Tail
 - [ ] Live message stream from a topic via SSE or WebSocket
@@ -89,7 +89,30 @@ docker compose up -d
 | `GET /api/cluster` | Cluster id, controller, metadata version, brokers |
 | `GET /api/topics` | All topics (internal included) with partition count and replication factor |
 | `GET /api/topics/{name}` | Partition leaders/replicas/ISR, earliest & latest offsets, approximate message count |
+| `GET /api/topics/{name}/messages` | Browse records (see below) |
 | `GET /actuator/health` | Liveness, readiness and Kafka connectivity |
 
-Errors follow RFC 9457 (`application/problem+json`): unknown topic → `404`, Kafka unreachable/timeout → `503`.
+### Browsing messages
+
+`GET /api/topics/{name}/messages` uses a short-lived, group-less consumer per request (no offsets are committed).
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `partition` | all | Restrict to one partition |
+| `offset` | – | Read forward from this offset (**range mode**, requires `partition`). Without it the newest records are returned (**tail mode**, newest first) |
+| `limit` | 100 | Max records to return (1–1000) |
+| `key` | – | Key must contain this substring |
+| `value` | – | Raw value must contain this substring |
+| `header` | – | `name` (header present) or `name=value` (exact match) |
+| `format` | `AUTO` | `AUTO` parses values that look like JSON, `STRING` returns raw text |
+
+When a filter is set, up to `limit × 10` records (max 5000) are scanned to find matches; the response's `scanned` field tells how many were read. Each message carries `partition`, `offset`, `timestamp`, `timestampType`, `key`, `value`, `valueFormat` (`json`/`string`), `headers`, `keySize` and `valueSize`.
+
+```bash
+curl 'localhost:8080/api/topics/demo-logs/messages?limit=5'                       # newest 5
+curl 'localhost:8080/api/topics/demo-logs/messages?partition=0&offset=500&limit=50'
+curl 'localhost:8080/api/topics/demo-logs/messages?value=ERROR&header=trace-id'
+```
+
+Errors follow RFC 9457 (`application/problem+json`): unknown topic → `404`, invalid query (bad limit, offset without partition, unknown partition) → `400`, Kafka unreachable/timeout → `503`.
 AdminClient request timeout is configurable via `logworm.kafka.request-timeout` (default `5s`).

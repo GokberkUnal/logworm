@@ -20,7 +20,7 @@ import org.apache.kafka.common.internals.KafkaFutureImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.gokgor.logworm.kafka.KafkaProperties;
+import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 
 class ClusterServiceTest {
 
@@ -29,7 +29,7 @@ class ClusterServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ClusterService(adminClient, new KafkaProperties(Duration.ofSeconds(1)));
+        service = new ClusterService(adminClient, new LogwormKafkaProperties(Duration.ofSeconds(1)));
     }
 
     @Test

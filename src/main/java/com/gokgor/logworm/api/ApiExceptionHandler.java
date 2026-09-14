@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.gokgor.logworm.kafka.KafkaRequestException;
+import com.gokgor.logworm.message.InvalidQueryException;
 import com.gokgor.logworm.topic.TopicNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(TopicNotFoundException.class)
     public ProblemDetail topicNotFound(TopicNotFoundException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidQueryException.class)
+    public ProblemDetail invalidQuery(InvalidQueryException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(KafkaRequestException.class)

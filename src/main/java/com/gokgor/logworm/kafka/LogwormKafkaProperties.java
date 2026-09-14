@@ -10,9 +10,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param requestTimeout how long to wait for a single AdminClient request
  */
 @ConfigurationProperties(prefix = "logworm.kafka")
-public record KafkaProperties(Duration requestTimeout) {
+public record LogwormKafkaProperties(Duration requestTimeout) {
 
-    public KafkaProperties {
+    public LogwormKafkaProperties {
         if (requestTimeout == null) {
             requestTimeout = Duration.ofSeconds(5);
         }

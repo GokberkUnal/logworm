@@ -11,7 +11,7 @@ import org.apache.kafka.clients.admin.DescribeFeaturesOptions;
 import org.apache.kafka.clients.admin.FinalizedVersionRange;
 import org.springframework.stereotype.Service;
 
-import com.gokgor.logworm.kafka.KafkaProperties;
+import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +24,7 @@ public class ClusterService {
     private final AdminClient adminClient;
     private final Duration timeout;
 
-    public ClusterService(AdminClient adminClient, KafkaProperties properties) {
+    public ClusterService(AdminClient adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }
