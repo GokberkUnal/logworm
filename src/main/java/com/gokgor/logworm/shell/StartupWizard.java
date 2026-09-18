@@ -11,9 +11,11 @@ import lombok.RequiredArgsConstructor;
 public class StartupWizard {
 
     private final KafkaConnectionStep kafkaConnection;
+    private final TopicSelectionStep topicSelection;
 
     public void ask() {
         kafkaConnection.ask();
+        topicSelection.ask();
         // next steps go here, in order
     }
 }

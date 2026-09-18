@@ -29,12 +29,24 @@ public class Choices {
         return select(question, items);
     }
 
-    /** Single choice; map keys are shown, values are returned. */
+    /**
+     * Single choice; map keys are shown, values are returned. Insertion order is preserved
+     * (Spring Shell's map variant copies into a HashMap, so items are passed as a list plus a
+     * comparator that pins the original order).
+     */
     public String select(String question, Map<String, String> displayToValue) {
+        List<SelectItem> items = displayToValue.entrySet().stream()
+                .map(e -> SelectItem.of(e.getKey(), e.getValue()))
+                .toList();
+        Map<String, Integer> order = new java.util.HashMap<>();
+        for (int i = 0; i < items.size(); i++) {
+            order.put(items.get(i).name(), i);
+        }
         var result = flowBuilder.clone().reset()
                 .withSingleItemSelector(KEY)
                 .name(question)
-                .selectItems(displayToValue)
+                .selectItems(items)
+                .sort(java.util.Comparator.comparingInt(item -> order.getOrDefault(item.getName(), Integer.MAX_VALUE)))
                 .and().build().run();
         return result.getContext().get(KEY);
     }
