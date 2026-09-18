@@ -42,6 +42,14 @@ public class ShellSession {
         put(RuleSet.SESSION_KEY, rules);
     }
 
+    public LagWatch lagWatch() {
+        return get(LagWatch.SESSION_KEY, LagWatch.class).orElse(LagWatch.defaults());
+    }
+
+    public void setLagWatch(LagWatch watch) {
+        put(LagWatch.SESSION_KEY, watch);
+    }
+
     public Optional<String> currentTopic() {
         return get(TopicSelectionStep.SESSION_KEY, String.class);
     }

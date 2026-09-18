@@ -56,7 +56,7 @@ final class TerminalSink implements StreamSink {
             }
             case "connected" -> {
                 var c = (StreamEvents.Connected) data;
-                out.println("Tailing " + c.topic() + " from offsets " + c.startOffsets() + " (max " + c.rate() + " msg/s). Press any key to stop.");
+                out.println("Tailing " + c.topic() + " from offsets " + c.startOffsets() + " (max " + c.rate() + " msg/s). Press Enter to stop.");
             }
             default -> { }
         }

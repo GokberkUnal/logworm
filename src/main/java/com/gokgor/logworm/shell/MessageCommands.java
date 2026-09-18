@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
-import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.springframework.shell.core.command.annotation.Command;
 import org.springframework.shell.core.command.annotation.Option;
@@ -90,7 +89,7 @@ public class MessageCommands {
                         columns(headers.length, view, valueWidth, rules));
     }
 
-    @Command(name = "tail", group = "Messages", description = "Live tail of the topic; any key stops it")
+    @Command(name = "tail", group = "Messages", description = "Live tail of the topic; Enter stops it")
     public String tail(
             @Option(longName = "name", description = "Topic (defaults to the selected one)") String name,
             @Option(longName = "partition", description = "Only this partition") Integer partition,
@@ -118,7 +117,16 @@ public class MessageCommands {
                 streamProperties.heartbeat(), streamProperties.lagSkipFactor(), System::nanoTime);
         Thread worker = Thread.ofVirtual().name("console-tail").start(loop);
 
-        waitForAnyKey(sink);
+        var stop = ConsoleInput.watchForKey(terminal);
+        try {
+            while (sink.isOpen() && !stop.stopped()) {
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            stop.cancel();
+        }
         sink.close();
         try {
             worker.join(Duration.ofSeconds(5));
@@ -130,21 +138,6 @@ public class MessageCommands {
         }
         return "Tail stopped. " + sink.shown() + " shown" + (rules.alerts().isEmpty() ? "" : ", " + sink.alerts() + " alert(s)")
                 + (rules.filters().isEmpty() ? "" : ", " + sink.hidden() + " hidden by filters") + ".";
-    }
-
-    /** Blocks until the user presses a key or the tail ends on its own. */
-    private void waitForAnyKey(TerminalSink sink) throws IOException {
-        Attributes saved = terminal.enterRawMode();
-        try {
-            while (sink.isOpen()) {
-                int c = terminal.reader().read(200);
-                if (c >= 0) {
-                    return;
-                }
-            }
-        } finally {
-            terminal.setAttributes(saved);
-        }
     }
 
     @SuppressWarnings("unchecked")

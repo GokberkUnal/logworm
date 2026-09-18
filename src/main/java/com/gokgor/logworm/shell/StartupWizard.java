@@ -1,7 +1,5 @@
 package com.gokgor.logworm.shell;
 
-import java.io.IOException;
-
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -17,23 +15,29 @@ public class StartupWizard {
     private final TopicSelectionStep topicSelection;
     private final ViewModeStep viewMode;
     private final FilterAlertStep filterAlert;
+    private final ConsumerGroupStep consumerGroups;
     private final MessageCommands messages;
 
     public void ask() {
         kafkaConnection.ask();
         topicSelection.ask();
         if (session().currentTopic().isEmpty()) {
+            consumerGroups.ask();
             return; // nothing to look at yet; 'use --topic' and 'view' later
         }
         viewMode.ask();
         filterAlert.ask();
-        try {
-            String out = session().view().mode() == ViewMode.NEW
-                    ? messages.tail(null, null, null, null, null)
-                    : messages.show(null, null, null, null, null);
-            System.out.println(out);
-        } catch (IOException | RuntimeException e) {
-            System.out.println("Could not start the view: " + e.getMessage());
+        consumerGroups.ask();
+        // A one-shot table is safe to print now; a live tail is not started here because the
+        // interactive shell does not own the terminal yet — the user runs 'tail' at the prompt.
+        if (session().view().mode() == ViewMode.NEW) {
+            System.out.println("Live view ready. Type 'tail' to start it (Enter stops it).");
+        } else {
+            try {
+                System.out.println(messages.show(null, null, null, null, null));
+            } catch (RuntimeException e) {
+                System.out.println("Could not show messages: " + e.getMessage());
+            }
         }
     }
 
