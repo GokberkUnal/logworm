@@ -1,0 +1,34 @@
+
+
+                                                 ${AnsiColor.GREEN}▒▒▒▒▒▒░
+                                              ${AnsiColor.GREEN}▒▒▒▒▒▒▒▒▒░░░
+                                            ${AnsiColor.GREEN}▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░
+                                           ${AnsiColor.GREEN}▒▒▒▒▒▒▒▒░░▒▒▓▒▒▒▒░░
+                                          ${AnsiColor.GREEN}▒▒▒▒▒░▒       ▒▒▒▒▒░░
+                                         ${AnsiColor.GREEN}░▒▒▒▒▒░        ░▓▓▒▒░░
+                                         ${AnsiColor.GREEN}░▓▓▒▒░░         ▒▓▒▒▒░░   ▒▒▒▒░
+                                         ${AnsiColor.GREEN}░▒▓▒▒▒░░        ▓▓▒▒░▒    ▒▒▒▒▒▒▒░
+                                          ${AnsiColor.GREEN}▒▓▓▒▒░░       ▒▓▓▓▒▒▒     ▒▒▒▒▒░░░
+                                          ${AnsiColor.GREEN}▒▓▓▒▒░▒      ▒▓▓▒▒▒▒░     ▒▓▒▒▒▒░░░
+                                           ${AnsiColor.GREEN}▒▓▒▒▒░░     ▒▓▒▒▒▒▒       ▒▓▒▒▒▒░░
+           ${AnsiColor.GREEN}▒▒▒▒▒▒▒▒▒▒▒▒░                   ▒▓▓▓▒░▒    ▒▓▒▓▒▒▒▒       ▒▓▓▒▓▒░░░
+        ${AnsiColor.GREEN}▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒                 ▒▓▒▒▒▒    ▓▓▒▒▒▒▒         ▓▓▓▒▓▒▒░
+     ${AnsiColor.GREEN}▒▒▒▒▓▓▓▓▓▓▒▒▒▓▓▓▓▓▓▓▒▒░▒░░             ▒▓▒▒▒▒   ░▓▓▓▒▒▒░         ▓▓▒▓▓▒░░
+   ${AnsiColor.GREEN}▒▒▒▒▒▒▓▒▒▒▒░░    ░▒▒▒▓▓▓▒▒▒░▒           ▒▒▒▒▒▒▒    ▓▓▓▓▒▒░       ░▒▓▓▓▓▒▒▒
+ ${AnsiColor.GREEN}▒▒▒▒▒▒▓▒▒▒             ▒▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓▓▓▒▒░▒        ▒▒▒▒▒▒▒     ▒▓▓▓▒▒▒▒    ▒▓▓▓▓▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▒▓▒▒
+ ${AnsiColor.GREEN}▒▒▒▒▒▒▒░                 ▒▓▓▓▓▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒      ${AnsiColor.BRIGHT_GREEN}██${AnsiColor.GREEN}▓▓▓▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▒
+ ${AnsiColor.GREEN}▒▒▒▒░                     ▒▒▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▓▒▒░        ▒${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓▓▓▓▓▓▒▒▓${AnsiColor.BRIGHT_GREEN}████${AnsiColor.GREEN}▓▓▓▒
+                              ${AnsiColor.GREEN}░▒▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓▓▓▓▓▓▓▓▓▓▓▒           ▒▒${AnsiColor.BRIGHT_GREEN}███████████${AnsiColor.GREEN}▓▒
+                                 ${AnsiColor.GREEN}░▒▒▒▒▒▒▒▒▒                  ░▒▒▒▒▒▒░
+${AnsiColor.DEFAULT}
+ ${AnsiColor.GREEN}▓▓▓         ▓▓▓▓▓▓▓▓   ▓▓▓▓▓▓▓▓▓ ▓▓      ▓▓  ▓▓▓▓▓▓▓▓  ▓▓▓▓▓▓▓▓▓  ▓▓      ▓▓
+ ${AnsiColor.GREEN}▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓▓      ▓▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓
+ ${AnsiColor.GREEN}▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓▓      ▓▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓▓  ▓▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓
+ ${AnsiColor.GREEN}▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓  ▓▓▓▓▓ ▓▓      ▓▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓▓ ▓▓▓▓ ▓▓
+ ${AnsiColor.GREEN}▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓     ▓▓ ▓▓  ▓▓  ▓▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}██${AnsiColor.GREEN}▓▓▓▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓  ▓▓  ▓▓  ▓▓
+ ${AnsiColor.GREEN}▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓        ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓▓  ▓▓  ▓▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓  ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓   ▓▓      ▓▓
+ ${AnsiColor.GREEN}▓${AnsiColor.BRIGHT_GREEN}██${AnsiColor.GREEN}▓▓▓▓▓▓▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓▓▓▓▓▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓    ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓ ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓   ▓${AnsiColor.BRIGHT_GREEN}█${AnsiColor.GREEN}▓  ▓▓      ▓▓
+ ${AnsiColor.GREEN}▓▓▓▓▓▓▓▓▓▓  ▓▓▓▓▓▓▓▓   ▓▓▓▓▓▓▓▓▓  ▓▓▓  ▓▓▓   ▓▓▓▓▓▓▓▓  ▓▓▓    ▓▓▓ ▓▓      ▓▓
+${AnsiColor.DEFAULT}                                                                    ${AnsiColor.BRIGHT_GREEN}by gokgor${AnsiColor.DEFAULT}
+${AnsiColor.BRIGHT_BLACK}  Kafka monitoring & inspection  ·  Spring Boot ${spring-boot.formatted-version}  ·  type ${AnsiColor.BRIGHT_WHITE}help${AnsiColor.BRIGHT_BLACK} for commands${AnsiColor.DEFAULT}
+

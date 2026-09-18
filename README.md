@@ -63,14 +63,33 @@ A [Kadeck](https://www.xeotek.com/kadeck/)-like Kafka monitoring and inspection 
 
 ---
 
+## Interactive console
+
+Starting the app opens a shell (Spring Shell 4) on top of the same services the REST API uses; the API keeps running alongside it.
+
+```
+logworm> topics                    # list topics (--internal to include __consumer_offsets)
+logworm> topic --name demo-logs    # partitions, leaders, offsets, message counts
+logworm> groups                    # consumer groups with total lag
+logworm> group --id my-group       # members and per-partition lag
+logworm> cluster                   # brokers and controller
+logworm> help                      # everything else
+logworm> exit                      # stops the whole application
+```
+
+A startup wizard (`StartupWizard.ask()`) runs between the banner and the first prompt; questions are one-liners via `Choices` (`select`, `selectMany`, `confirm`, `text`) and answers are kept in `ShellSession`. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
+
 ## Development
 
 ```bash
 # Start local Kafka
 docker compose up -d
 
-# Run the application
+# Run the application (opens the console; REST API on :8080 as well)
 ./mvnw spring-boot:run
+
+# Headless (REST API only, no console)
+./mvnw spring-boot:run -Dspring-boot.run.arguments=--spring.shell.interactive.enabled=false
 
 # Tests
 ./mvnw test

@@ -1,6 +1,14 @@
 spring:
   application:
     name: logworm
+  main:
+    banner-mode: console
+    log-startup-info: false
+  shell:
+    interactive:
+      enabled: true
+    history:
+      name: .logworm-history
   kafka:
     bootstrap-servers: localhost:9092
 
@@ -25,3 +33,10 @@ logworm:
     max-rate: 1000
     heartbeat: 15s
     lag-skip-factor: 10
+
+# Keep the console clean for the interactive shell; everything below WARN is noise there.
+logging:
+  level:
+    root: WARN
+    com.gokgor.logworm: INFO
+    org.apache.kafka: ERROR

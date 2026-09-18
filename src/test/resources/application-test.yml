@@ -5,3 +5,8 @@ logging:
     kafka: WARN
     state.change.logger: WARN
     org.springframework.kafka: WARN
+
+spring:
+  shell:
+    interactive:
+      enabled: false

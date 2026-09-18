@@ -34,3 +34,6 @@ build/
 
 ### macOS ###
 .DS_Store
+
+# Spring Shell command history
+.logworm-history
