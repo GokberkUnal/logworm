@@ -77,7 +77,11 @@ logworm> help                      # everything else
 logworm> exit                      # stops the whole application
 ```
 
-A startup wizard (`StartupWizard.ask()`) runs between the banner and the first prompt; questions are one-liners via `Choices` (`select`, `selectMany`, `confirm`, `text`) and answers are kept in `ShellSession`. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
+A startup wizard (`StartupWizard.ask()`) runs between the banner and the first prompt; questions are one-liners via `Choices` (`select`, `selectMany`, `confirm`, `text`) and answers are kept in `ShellSession`.
+
+Wizard steps so far:
+
+1. **Kafka cluster** — three options: the configured address, *Recent connections...* (a submenu fed from `~/.logworm/connections`, hidden when empty), or *Other address...* which opens a direct `host:port[,host:port]` input. The connection is verified before the prompt appears; on failure you can retry or continue unverified. `connect --servers <addr>` switches cluster later, `connection` shows the current one. A failed switch keeps the previous connection. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
 
 ## Development
 

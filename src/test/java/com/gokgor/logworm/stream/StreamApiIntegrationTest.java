@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class StreamApiIntegrationTest {
     MockMvc mockMvc;
 
     @Autowired
-    AdminClient adminClient;
+    Admin adminClient;
 
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;

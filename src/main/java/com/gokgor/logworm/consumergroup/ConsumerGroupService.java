@@ -17,7 +17,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeConsumerGroupsOptions;
@@ -37,17 +37,17 @@ import com.gokgor.logworm.cluster.BrokerInfo;
 import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 
 /**
- * Consumer group monitoring. Every call is a fixed number of AdminClient round trips regardless
+ * Consumer group monitoring. Every call is a fixed number of Admin round trips regardless
  * of group count: list → describe (all groups at once) → committed offsets (all groups at once)
  * → end offsets (union of all partitions once).
  */
 @Service
 public class ConsumerGroupService {
 
-    private final AdminClient adminClient;
+    private final Admin adminClient;
     private final Duration timeout;
 
-    public ConsumerGroupService(AdminClient adminClient, LogwormKafkaProperties properties) {
+    public ConsumerGroupService(Admin adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }

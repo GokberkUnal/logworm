@@ -5,7 +5,7 @@ import static com.gokgor.logworm.kafka.KafkaFutures.await;
 import java.time.Duration;
 import java.util.Comparator;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeFeaturesOptions;
 import org.apache.kafka.clients.admin.FinalizedVersionRange;
@@ -21,10 +21,10 @@ public class ClusterService {
 
     private static final String METADATA_VERSION_FEATURE = "metadata.version";
 
-    private final AdminClient adminClient;
+    private final Admin adminClient;
     private final Duration timeout;
 
-    public ClusterService(AdminClient adminClient, LogwormKafkaProperties properties) {
+    public ClusterService(Admin adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }

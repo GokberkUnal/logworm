@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
@@ -37,7 +37,7 @@ class MessageApiIntegrationTest {
     MockMvc mockMvc;
 
     @Autowired
-    AdminClient adminClient;
+    Admin adminClient;
 
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;

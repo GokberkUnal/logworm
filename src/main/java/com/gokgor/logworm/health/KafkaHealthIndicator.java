@@ -4,7 +4,7 @@ import static com.gokgor.logworm.kafka.KafkaFutures.await;
 
 import java.time.Duration;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
@@ -19,10 +19,10 @@ import com.gokgor.logworm.kafka.LogwormKafkaProperties;
 @Component("kafka")
 public class KafkaHealthIndicator implements HealthIndicator {
 
-    private final AdminClient adminClient;
+    private final Admin adminClient;
     private final Duration timeout;
 
-    public KafkaHealthIndicator(AdminClient adminClient, LogwormKafkaProperties properties) {
+    public KafkaHealthIndicator(Admin adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }

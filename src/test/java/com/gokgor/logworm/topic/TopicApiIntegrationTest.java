@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class TopicApiIntegrationTest {
     MockMvc mockMvc;
 
     @Autowired
-    AdminClient adminClient;
+    Admin adminClient;
 
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;

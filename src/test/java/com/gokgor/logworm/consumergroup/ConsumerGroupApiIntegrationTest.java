@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -40,7 +40,7 @@ class ConsumerGroupApiIntegrationTest {
     MockMvc mockMvc;
 
     @Autowired
-    AdminClient adminClient;
+    Admin adminClient;
 
     @Autowired
     KafkaTemplate<String, String> kafkaTemplate;

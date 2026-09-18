@@ -13,13 +13,16 @@ import org.springframework.stereotype.Component;
 /**
  * Creates short-lived, group-less raw-byte consumers for browsing and tailing.
  * Partitions are assigned manually, nothing is ever committed, topics are never auto-created.
+ * Bootstrap servers come from {@link KafkaConnection} at creation time, so a reconnect
+ * applies to the next browse/tail.
  */
 @Component
 public class BrowserConsumerFactory {
 
     private final Map<String, Object> config;
+    private final KafkaConnection connection;
 
-    public BrowserConsumerFactory(KafkaProperties kafkaProperties) {
+    public BrowserConsumerFactory(KafkaProperties kafkaProperties, KafkaConnection connection) {
         Map<String, Object> c = new HashMap<>(kafkaProperties.buildConsumerProperties());
         c.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
         c.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
@@ -27,10 +30,12 @@ public class BrowserConsumerFactory {
         c.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, false);
         c.remove(ConsumerConfig.GROUP_ID_CONFIG);
         this.config = Map.copyOf(c);
+        this.connection = connection;
     }
 
     public Consumer<byte[], byte[]> create(String clientId) {
         Map<String, Object> c = new HashMap<>(config);
+        c.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connection.info().bootstrapServers());
         c.put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);
         return new KafkaConsumer<>(c);
     }

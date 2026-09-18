@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.DescribeTopicsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
@@ -29,10 +29,10 @@ import com.gokgor.logworm.kafka.KafkaRequestException;
 @Service
 public class TopicService {
 
-    private final AdminClient adminClient;
+    private final Admin adminClient;
     private final Duration timeout;
 
-    public TopicService(AdminClient adminClient, LogwormKafkaProperties properties) {
+    public TopicService(Admin adminClient, LogwormKafkaProperties properties) {
         this.adminClient = adminClient;
         this.timeout = properties.requestTimeout();
     }
