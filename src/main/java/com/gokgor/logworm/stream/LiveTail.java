@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  * it jumps to the end and reports how many records were skipped.
  */
 @Slf4j
-final class LiveTail implements Runnable {
+public final class LiveTail implements Runnable {
 
     private static final Duration POLL = Duration.ofMillis(200);
     private static final long WINDOW_NANOS = Duration.ofSeconds(1).toNanos();
@@ -41,7 +41,7 @@ final class LiveTail implements Runnable {
     private final int lagSkipFactor;
     private final LongSupplier nanoClock;
 
-    LiveTail(Consumer<byte[], byte[]> consumer, StreamSink sink, String topic, List<TopicPartition> partitions,
+    public LiveTail(Consumer<byte[], byte[]> consumer, StreamSink sink, String topic, List<TopicPartition> partitions,
             StreamQuery query, MessageDecoder decoder, Duration heartbeat, int lagSkipFactor, LongSupplier nanoClock) {
         this.consumer = consumer;
         this.sink = sink;

@@ -26,6 +26,14 @@ public class ShellSession {
         return Map.copyOf(values);
     }
 
+    public ViewSettings view() {
+        return get(ViewSettings.SESSION_KEY, ViewSettings.class).orElse(ViewSettings.defaults());
+    }
+
+    public void setView(ViewSettings view) {
+        put(ViewSettings.SESSION_KEY, view);
+    }
+
     public Optional<String> currentTopic() {
         return get(TopicSelectionStep.SESSION_KEY, String.class);
     }

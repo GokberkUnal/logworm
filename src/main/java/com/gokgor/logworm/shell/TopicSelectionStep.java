@@ -26,6 +26,10 @@ public class TopicSelectionStep {
     private final ShellSession session;
     private final TopicService topicService;
 
+    ShellSession session() {
+        return session;
+    }
+
     public void ask() {
         ask(System.out);
     }

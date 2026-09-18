@@ -71,6 +71,9 @@ Starting the app opens a shell (Spring Shell 4) on top of the same services the 
 logworm> topics                    # list topics (--internal to include __consumer_offsets)
 logworm> use --topic demo-logs     # select the topic other commands default to (prompt shows it)
 logworm> topic                     # partitions, leaders, offsets, message counts (--name to override)
+logworm> show --limit 20           # newest messages as a table, oldest first (--key/--value/--partition filters)
+logworm> tail --value ERROR        # live tail, any key stops it (--rate caps messages/second)
+logworm> view --fields level,msg   # show only these JSON fields (dotted paths ok); --fields none resets; --mode all|new
 logworm> groups                    # consumer groups with total lag
 logworm> group --id my-group       # members and per-partition lag
 logworm> cluster                   # brokers and controller
@@ -83,7 +86,8 @@ A startup wizard (`StartupWizard.ask()`) runs between the banner and the first p
 Wizard steps so far:
 
 1. **Kafka cluster** — three options: the configured address, *Recent connections...* (a submenu fed from `~/.logworm/connections`, hidden when empty), or *Other address...* which opens a direct `host:port[,host:port]` input.
-2. **Topic** — pick from the cluster's topics (internal ones behind *Show internal topics...*, or *Skip for now*). The pick becomes the current topic: the prompt turns into `logworm demo-logs>` and topic-scoped commands use it unless `--name` is given. Change it later with `use --topic <name>`, inspect with `current`. The connection is verified before the prompt appears; on failure you can retry or continue unverified. `connect --servers <addr>` switches cluster later, `connection` shows the current one. A failed switch keeps the previous connection. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
+2. **Topic** — pick from the cluster's topics (internal ones behind *Show internal topics...*, or *Skip for now*). The pick becomes the current topic: the prompt turns into `logworm demo-logs>` and topic-scoped commands use it unless `--name` is given. Change it later with `use --topic <name>`, inspect with `current`.
+3. **View** — *All messages* (newest N as a table), *Only new messages* (live tail from now), or *Specific fields*: the last 50 messages are sampled for JSON keys (nested ones as `a.b`), you tick the ones to show, then choose all / new. The chosen view starts immediately after the wizard and stays the default for `show` and `tail`; `view` prints or changes it. The connection is verified before the prompt appears; on failure you can retry or continue unverified. `connect --servers <addr>` switches cluster later, `connection` shows the current one. A failed switch keeps the previous connection. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
 
 ## Development
 
