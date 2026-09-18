@@ -34,6 +34,14 @@ public class ShellSession {
         put(ViewSettings.SESSION_KEY, view);
     }
 
+    public RuleSet rules() {
+        return get(RuleSet.SESSION_KEY, RuleSet.class).orElse(RuleSet.empty());
+    }
+
+    public void setRules(RuleSet rules) {
+        put(RuleSet.SESSION_KEY, rules);
+    }
+
     public Optional<String> currentTopic() {
         return get(TopicSelectionStep.SESSION_KEY, String.class);
     }

@@ -67,18 +67,27 @@ public class MessageCommands {
             @Option(longName = "value", description = "Value must contain") String value) {
         String topic = session.resolveTopic(name);
         ViewSettings view = session.view();
-        var page = messageService.read(topic, new MessageQuery(partition, null,
-                limit != null ? limit : DEFAULT_LIMIT, key, value, null, ValueFormat.AUTO));
-        if (page.messages().isEmpty()) {
-            return "No messages in " + topic + (page.scanned() > 0 ? " matched the filter" : "");
+        RuleSet rules = session.rules();
+        int wanted = limit != null ? limit : DEFAULT_LIMIT;
+        // rule filters are applied here, after reading: read more so enough survive
+        int toRead = rules.filters().isEmpty() ? wanted : Math.min(MessageQuery.MAX_LIMIT, wanted * 10);
+        var page = messageService.read(topic, new MessageQuery(partition, null, toRead, key, value, null, ValueFormat.AUTO));
+        List<KafkaMessage> matched = page.messages().stream().filter(rules::passes).limit(wanted).toList();
+        if (matched.isEmpty()) {
+            return "No messages in " + topic + (page.scanned() > 0 ? " matched the filters" : "");
         }
-        List<KafkaMessage> oldestFirst = new ArrayList<>(page.messages());
+        List<KafkaMessage> oldestFirst = new ArrayList<>(matched);
         oldestFirst.sort((a, b) -> a.timestamp().equals(b.timestamp())
                 ? Long.compare(a.offset(), b.offset()) : a.timestamp().compareTo(b.timestamp()));
         int valueWidth = Math.max(20, terminal.getWidth() - 50);
-        String[] headers = formatter.headers(view);
-        return topic + "  showing " + oldestFirst.size() + " of " + page.scanned() + " scanned  (" + view + ")\n"
-                + tables.render(oldestFirst, headers, columns(headers.length, view, valueWidth));
+        boolean withAlert = !rules.alerts().isEmpty();
+        String[] headers = formatter.headers(view, withAlert);
+        long alerts = oldestFirst.stream().filter(m -> rules.alertFor(m).isPresent()).count();
+        return topic + "  showing " + oldestFirst.size() + " of " + page.scanned() + " scanned  (" + view + ")"
+                + (rules.isEmpty() ? "" : "  [" + rules.describe() + (withAlert ? "; " + alerts + " alert(s)" : "") + "]") + "\n"
+                + tables.renderStyled(oldestFirst, headers,
+                        m -> rules.alertFor(m).map(r -> r.color().ansi).orElse(null),
+                        columns(headers.length, view, valueWidth, rules));
     }
 
     @Command(name = "tail", group = "Messages", description = "Live tail of the topic; any key stops it")
@@ -90,6 +99,7 @@ public class MessageCommands {
             @Option(longName = "rate", description = "Max messages per second") Integer rate) throws IOException {
         String topic = session.resolveTopic(name);
         ViewSettings view = session.view();
+        RuleSet rules = session.rules();
         int effectiveRate = Math.min(rate != null ? rate : streamProperties.defaultRate(), streamProperties.maxRate());
         var query = new StreamQuery(partition, key, value, null, ValueFormat.AUTO, effectiveRate);
 
@@ -102,7 +112,8 @@ public class MessageCommands {
             throw e;
         }
         int width = terminal.getWidth() > 0 ? terminal.getWidth() : 160;
-        var sink = new TerminalSink(terminal.writer(), m -> formatter.line(m, view, width));
+        var sink = new TerminalSink(terminal.writer(), rules::passes, m -> formatter.line(m, view, width, rules),
+                m -> rules.alertFor(m).isPresent());
         var loop = new LiveTail(consumer, sink, topic, partitions, query, decoder,
                 streamProperties.heartbeat(), streamProperties.lagSkipFactor(), System::nanoTime);
         Thread worker = Thread.ofVirtual().name("console-tail").start(loop);
@@ -117,7 +128,8 @@ public class MessageCommands {
         if (sink.failure() != null) {
             return "Tail stopped with error: " + sink.failure().getMessage();
         }
-        return "Tail stopped.";
+        return "Tail stopped. " + sink.shown() + " shown" + (rules.alerts().isEmpty() ? "" : ", " + sink.alerts() + " alert(s)")
+                + (rules.filters().isEmpty() ? "" : ", " + sink.hidden() + " hidden by filters") + ".";
     }
 
     /** Blocks until the user presses a key or the tail ends on its own. */
@@ -136,11 +148,11 @@ public class MessageCommands {
     }
 
     @SuppressWarnings("unchecked")
-    private java.util.function.Function<KafkaMessage, Object>[] columns(int count, ViewSettings view, int valueWidth) {
+    private java.util.function.Function<KafkaMessage, Object>[] columns(int count, ViewSettings view, int valueWidth, RuleSet rules) {
         java.util.function.Function<KafkaMessage, Object>[] cols = new java.util.function.Function[count];
         for (int i = 0; i < count; i++) {
             final int idx = i;
-            cols[i] = m -> formatter.row(m, view, valueWidth)[idx];
+            cols[i] = m -> formatter.row(m, view, valueWidth, rules)[idx];
         }
         return cols;
     }

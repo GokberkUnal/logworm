@@ -15,6 +15,8 @@ import org.springframework.shell.jline.tui.component.flow.SelectItem;
 public class Choices {
 
     private static final String KEY = "answer";
+    /** Rows visible before the selector starts scrolling (Spring Shell's default of 5 hides options). */
+    private static final int VISIBLE_ROWS = 12;
 
     private final ComponentFlow.Builder flowBuilder;
 
@@ -46,6 +48,7 @@ public class Choices {
                 .withSingleItemSelector(KEY)
                 .name(question)
                 .selectItems(items)
+                .max(VISIBLE_ROWS)
                 .sort(java.util.Comparator.comparingInt(item -> order.getOrDefault(item.getName(), Integer.MAX_VALUE)))
                 .and().build().run();
         return result.getContext().get(KEY);
@@ -58,6 +61,7 @@ public class Choices {
                 .withMultiItemSelector(KEY)
                 .name(question)
                 .selectItems(items)
+                .max(VISIBLE_ROWS)
                 .and().build().run();
         List<String> picked = result.getContext().get(KEY);
         return picked != null ? picked : List.of();

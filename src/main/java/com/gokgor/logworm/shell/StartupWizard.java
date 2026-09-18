@@ -16,6 +16,7 @@ public class StartupWizard {
     private final KafkaConnectionStep kafkaConnection;
     private final TopicSelectionStep topicSelection;
     private final ViewModeStep viewMode;
+    private final FilterAlertStep filterAlert;
     private final MessageCommands messages;
 
     public void ask() {
@@ -25,6 +26,7 @@ public class StartupWizard {
             return; // nothing to look at yet; 'use --topic' and 'view' later
         }
         viewMode.ask();
+        filterAlert.ask();
         try {
             String out = session().view().mode() == ViewMode.NEW
                     ? messages.tail(null, null, null, null, null)

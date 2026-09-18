@@ -5,9 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.gokgor.logworm.message.MessageQuery;
-import com.gokgor.logworm.message.MessageService;
-import com.gokgor.logworm.message.ValueFormat;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,11 +21,11 @@ public class ViewModeStep {
     static final String FIELDS = "Specific fields  (pick JSON fields to show)";
     static final String OF_ALL = "All messages";
     static final String OF_NEW = "Only new messages";
-    static final int SAMPLE = 50;
+    static final int SAMPLE = FieldSampler.SAMPLE;
 
     private final Choices choices;
     private final ShellSession session;
-    private final MessageService messageService;
+    private final FieldSampler sampler;
 
     public void ask() {
         ask(System.out);
@@ -58,8 +55,7 @@ public class ViewModeStep {
         } else {
             List<String> discovered;
             try {
-                var page = messageService.read(topic, new MessageQuery(null, null, SAMPLE, null, null, null, ValueFormat.AUTO));
-                discovered = MessageFormatter.discoverFields(page.messages());
+                discovered = sampler.sample(topic);
             } catch (RuntimeException e) {
                 out.println("Could not sample messages (" + e.getMessage() + ").");
                 discovered = List.of();

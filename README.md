@@ -74,6 +74,9 @@ logworm> topic                     # partitions, leaders, offsets, message count
 logworm> show --limit 20           # newest messages as a table, oldest first (--key/--value/--partition filters)
 logworm> tail --value ERROR        # live tail, any key stops it (--rate caps messages/second)
 logworm> view --fields level,msg   # show only these JSON fields (dotted paths ok); --fields none resets; --mode all|new
+logworm> filter --field level --when ne:INFO                 # hide messages unless the field matches
+logworm> alert --field price --when null --color red --label "no price"   # color + label matching rows
+logworm> rules                     # list filters and alerts; --clear removes them
 logworm> groups                    # consumer groups with total lag
 logworm> group --id my-group       # members and per-partition lag
 logworm> cluster                   # brokers and controller
@@ -87,7 +90,8 @@ Wizard steps so far:
 
 1. **Kafka cluster** — three options: the configured address, *Recent connections...* (a submenu fed from `~/.logworm/connections`, hidden when empty), or *Other address...* which opens a direct `host:port[,host:port]` input.
 2. **Topic** — pick from the cluster's topics (internal ones behind *Show internal topics...*, or *Skip for now*). The pick becomes the current topic: the prompt turns into `logworm demo-logs>` and topic-scoped commands use it unless `--name` is given. Change it later with `use --topic <name>`, inspect with `current`.
-3. **View** — *All messages* (newest N as a table), *Only new messages* (live tail from now), or *Specific fields*: the last 50 messages are sampled for JSON keys (nested ones as `a.b`), you tick the ones to show, then choose all / new. The chosen view starts immediately after the wizard and stays the default for `show` and `tail`; `view` prints or changes it. The connection is verified before the prompt appears; on failure you can retry or continue unverified. `connect --servers <addr>` switches cluster later, `connection` shows the current one. A failed switch keeps the previous connection. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
+3. **View** — *All messages* (newest N as a table), *Only new messages* (live tail from now), or *Specific fields*: the last 50 messages are sampled for JSON keys (nested ones as `a.b`), you tick the ones to show, then choose all / new. The chosen view starts immediately after the wizard and stays the default for `show` and `tail`; `view` prints or changes it.
+4. **Filters & alerts** — rules on one field (`key` or a JSON path picked from the sampled fields, or typed): *is-null*, *not-null*, *equals*, *not-equals*, *contains*, *greater-than*, *less-than*. A **filter** hides everything that does not match (several filters are AND-ed). An **alert** colors matching rows red / yellow / green / cyan and tags them with a label (default: the condition, e.g. `price is null`); the first matching alert wins. `show` adds an `alert` column and counts matches, `tail` prefixes lines with `[label]` and reports shown / alert / hidden counts when stopped. Same rules via commands: `filter`, `alert`, `rules [--clear]`, with `--when null | notnull | eq:X | ne:X | contains:X | gt:N | lt:N`. The connection is verified before the prompt appears; on failure you can retry or continue unverified. `connect --servers <addr>` switches cluster later, `connection` shows the current one. A failed switch keeps the previous connection. The shell is off in tests (`spring.shell.interactive.enabled=false`); every shell bean is guarded by `@InteractiveShellComponent` so the REST API still works headless.
 
 ## Development
 

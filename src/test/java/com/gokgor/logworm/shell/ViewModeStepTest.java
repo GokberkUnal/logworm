@@ -31,7 +31,7 @@ class ViewModeStepTest {
     private final MessageService messageService = mock(MessageService.class);
     private final ShellSession session = new ShellSession();
     private final ByteArrayOutputStream console = new ByteArrayOutputStream();
-    private final ViewModeStep step = new ViewModeStep(choices, session, messageService);
+    private final ViewModeStep step = new ViewModeStep(choices, session, new FieldSampler(messageService));
 
     @Test
     void allAndNewSetTheModeWithoutSampling() {

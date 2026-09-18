@@ -19,16 +19,28 @@ public class MessageFormatter {
     static final String[] META = {"part", "offset", "time", "key"};
 
     public String[] headers(ViewSettings view) {
+        return headers(view, false);
+    }
+
+    /** @param withAlert adds a trailing "alert" column for the matching rule's label */
+    public String[] headers(ViewSettings view, boolean withAlert) {
         List<String> h = new ArrayList<>(List.of(META));
         if (view.hasFields()) {
             h.addAll(view.fields());
         } else {
             h.add("value");
         }
+        if (withAlert) {
+            h.add("alert");
+        }
         return h.toArray(String[]::new);
     }
 
     public Object[] row(KafkaMessage m, ViewSettings view, int valueWidth) {
+        return row(m, view, valueWidth, null);
+    }
+
+    public Object[] row(KafkaMessage m, ViewSettings view, int valueWidth, RuleSet rules) {
         List<Object> cells = new ArrayList<>();
         cells.add(m.partition());
         cells.add(m.offset());
@@ -41,7 +53,21 @@ public class MessageFormatter {
         } else {
             cells.add(truncate(valueText(m), valueWidth));
         }
+        if (rules != null && !rules.alerts().isEmpty()) {
+            cells.add(rules.alertFor(m).map(Rule::label).orElse(""));
+        }
         return cells.toArray();
+    }
+
+    /** {@link #line} wrapped in the matching alert's color and prefixed with its label. */
+    public String line(KafkaMessage m, ViewSettings view, int width, RuleSet rules) {
+        var alert = rules == null ? java.util.Optional.<Rule>empty() : rules.alertFor(m);
+        if (alert.isEmpty()) {
+            return line(m, view, width);
+        }
+        Rule r = alert.get();
+        String prefix = "[" + r.label() + "] ";
+        return r.color().ansi + prefix + line(m, view, Math.max(10, width - prefix.length())) + Rule.Color.RESET;
     }
 
     /** One line for live tail: {@code p1@1203 12:04:33.209 key  a=1 b=2} or the value. */

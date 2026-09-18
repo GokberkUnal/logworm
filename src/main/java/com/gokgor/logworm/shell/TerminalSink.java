@@ -3,6 +3,7 @@ package com.gokgor.logworm.shell;
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.gokgor.logworm.message.KafkaMessage;
 import com.gokgor.logworm.stream.StreamEvents;
@@ -12,13 +13,21 @@ import com.gokgor.logworm.stream.StreamSink;
 final class TerminalSink implements StreamSink {
 
     private final PrintWriter out;
+    private final Predicate<KafkaMessage> filter;
     private final Function<KafkaMessage, String> line;
+    private final Predicate<KafkaMessage> isAlert;
     private final AtomicBoolean open = new AtomicBoolean(true);
     private Throwable failure;
+    private long shown;
+    private long hidden;
+    private long alerts;
 
-    TerminalSink(PrintWriter out, Function<KafkaMessage, String> line) {
+    TerminalSink(PrintWriter out, Predicate<KafkaMessage> filter, Function<KafkaMessage, String> line,
+            Predicate<KafkaMessage> isAlert) {
         this.out = out;
+        this.filter = filter;
         this.line = line;
+        this.isAlert = isAlert;
     }
 
     @Override
@@ -29,7 +38,18 @@ final class TerminalSink implements StreamSink {
     @Override
     public void send(String event, Object data) {
         switch (event) {
-            case "message" -> out.println(line.apply((KafkaMessage) data));
+            case "message" -> {
+                var m = (KafkaMessage) data;
+                if (!filter.test(m)) {
+                    hidden++;
+                    return;
+                }
+                shown++;
+                if (isAlert.test(m)) {
+                    alerts++;
+                }
+                out.println(line.apply(m));
+            }
             case "stats" -> {
                 var s = (StreamEvents.Stats) data;
                 out.println("[stats] emitted=" + s.emitted() + " dropped=" + s.dropped() + " skipped=" + s.skipped());
@@ -65,5 +85,17 @@ final class TerminalSink implements StreamSink {
 
     Throwable failure() {
         return failure;
+    }
+
+    long shown() {
+        return shown;
+    }
+
+    long hidden() {
+        return hidden;
+    }
+
+    long alerts() {
+        return alerts;
     }
 }
