@@ -3,13 +3,17 @@ package com.gokgor.logworm.shell;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.gokgor.logworm.message.KafkaMessage;
 
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Turns messages into table rows / single lines according to the selected fields. */
 @InteractiveShellComponent
@@ -17,6 +21,12 @@ public class MessageFormatter {
 
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
     static final String[] META = {"part", "offset", "time", "key"};
+
+    private final ObjectMapper json;
+
+    public MessageFormatter(ObjectMapper json) {
+        this.json = json;
+    }
 
     public String[] headers(ViewSettings view) {
         return headers(view, false);
@@ -84,6 +94,92 @@ public class MessageFormatter {
             sb.append(valueText(m));
         }
         return truncate(sb.toString().stripTrailing(), width);
+    }
+
+    /**
+     * One block per message for humans:
+     * <pre>
+     * 14:03:44.614  key=order-service  p2@1014
+     *   level    INFO --> ERROR
+     *   message  Order created
+     * </pre>
+     * Fields are the selected ones, otherwise every (flattened) JSON field of the message, or
+     * {@code value} for non-JSON. A field that differs from the previous message with the same key
+     * is printed as {@code previous --> current}. An alert colors the whole block and adds its label.
+     */
+    public String pretty(KafkaMessage m, ViewSettings view, RuleSet rules, ChangeTracker tracker) {
+        var alert = rules == null ? java.util.Optional.<Rule>empty() : rules.alertFor(m);
+        var sb = new StringBuilder();
+        sb.append(TIME.format(m.timestamp())).append("  key=").append(m.key() == null ? "-" : m.key())
+                .append("  p").append(m.partition()).append('@').append(m.offset());
+        alert.ifPresent(r -> sb.append("  [").append(r.label()).append(']'));
+        List<ChangeTracker.Change> changes = tracker.track(m.key(), fieldValues(m, view));
+        int nameWidth = changes.stream().mapToInt(c -> c.field().length()).max().orElse(0);
+        for (var c : changes) {
+            sb.append("\n  ").append(c.field()).append(" ".repeat(nameWidth - c.field().length() + 2));
+            if (c.changed()) {
+                sb.append(c.previous()).append(" --> ");
+            }
+            sb.append(c.current());
+        }
+        String text = sb.toString();
+        return alert.map(r -> r.color().ansi + text + Rule.Color.RESET).orElse(text);
+    }
+
+    /** Field name → display value: the selected fields, else all flattened JSON fields, else {@code value}. */
+    static Map<String, String> fieldValues(KafkaMessage m, ViewSettings view) {
+        Map<String, String> values = new LinkedHashMap<>();
+        if (view.hasFields()) {
+            for (String f : view.fields()) {
+                String v = field(m, f);
+                values.put(f, v.isEmpty() ? "-" : v);
+            }
+        } else if (m.value() instanceof JsonNode node && node.isObject()) {
+            Set<String> keys = new LinkedHashSet<>();
+            collect("", node, keys, 0);
+            for (String k : keys) {
+                String v = field(m, k);
+                values.put(k, v.isEmpty() ? "-" : v);
+            }
+        } else {
+            values.put("value", valueText(m));
+        }
+        return values;
+    }
+
+    /**
+     * One compact JSON object per message: partition, offset, timestamp, key, then either the
+     * whole {@code value} or one property per selected field; {@code alert} carries the matching
+     * rule's label. Colored like {@link #line(KafkaMessage, ViewSettings, int, RuleSet)}.
+     */
+    public String json(KafkaMessage m, ViewSettings view, RuleSet rules) {
+        ObjectNode o = json.createObjectNode();
+        o.put("partition", m.partition());
+        o.put("offset", m.offset());
+        o.put("timestamp", m.timestamp().toString());
+        o.put("key", m.key());
+        if (view.hasFields()) {
+            ObjectNode fields = o.putObject("fields");
+            for (String f : view.fields()) {
+                fields.set(f, fieldNode(m, f));
+            }
+        } else if (m.value() instanceof JsonNode node) {
+            o.set("value", node);
+        } else {
+            o.put("value", m.value() == null ? null : m.value().toString());
+        }
+        var alert = rules == null ? java.util.Optional.<Rule>empty() : rules.alertFor(m);
+        alert.ifPresent(r -> o.put("alert", r.label()));
+        String text = o.toString();
+        return alert.map(r -> r.color().ansi + text + Rule.Color.RESET).orElse(text);
+    }
+
+    private JsonNode fieldNode(KafkaMessage m, String path) {
+        if (!(m.value() instanceof JsonNode node)) {
+            return json.getNodeFactory().nullNode();
+        }
+        JsonNode at = node.at("/" + path.replace('.', '/'));
+        return at.isMissingNode() ? json.getNodeFactory().nullNode() : at;
     }
 
     /** Value of a dotted path inside a JSON value; empty string when absent or the value is not JSON. */

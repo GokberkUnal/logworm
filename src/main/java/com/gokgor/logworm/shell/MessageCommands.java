@@ -5,6 +5,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
@@ -57,16 +59,26 @@ public class MessageCommands {
         return "View: " + v;
     }
 
-    @Command(name = "show", group = "Messages", description = "Newest messages of the topic as a table (uses the selected fields)")
+    @Command(name = "format", group = "Messages", description = "Show or change how messages are printed: --set pretty|table|json|line")
+    public String format(@Option(longName = "set", description = "pretty | table | json | line") String set) {
+        if (set != null) {
+            session.setOutputFormat(OutputFormat.parse(set));
+        }
+        return "Output format: " + session.outputFormat();
+    }
+
+    @Command(name = "show", group = "Messages", description = "Newest messages of the topic (uses the selected fields and output format)")
     public String show(
             @Option(longName = "name", description = "Topic (defaults to the selected one)") String name,
             @Option(longName = "limit", description = "How many (default 50)") Integer limit,
             @Option(longName = "partition", description = "Only this partition") Integer partition,
             @Option(longName = "key", description = "Key must contain") String key,
-            @Option(longName = "value", description = "Value must contain") String value) {
+            @Option(longName = "value", description = "Value must contain") String value,
+            @Option(longName = "format", description = "pretty | table | json | line (defaults to the selected format)") String format) {
         String topic = session.resolveTopic(name);
         ViewSettings view = session.view();
         RuleSet rules = session.rules();
+        OutputFormat out = resolveFormat(format);
         int wanted = limit != null ? limit : DEFAULT_LIMIT;
         // rule filters are applied here, after reading: read more so enough survive
         int toRead = rules.filters().isEmpty() ? wanted : Math.min(MessageQuery.MAX_LIMIT, wanted * 10);
@@ -80,13 +92,26 @@ public class MessageCommands {
                 ? Long.compare(a.offset(), b.offset()) : a.timestamp().compareTo(b.timestamp()));
         int valueWidth = Math.max(20, terminal.getWidth() - 50);
         boolean withAlert = !rules.alerts().isEmpty();
-        String[] headers = formatter.headers(view, withAlert);
         long alerts = oldestFirst.stream().filter(m -> rules.alertFor(m).isPresent()).count();
-        return topic + "  showing " + oldestFirst.size() + " of " + page.scanned() + " scanned  (" + view + ")"
-                + (rules.isEmpty() ? "" : "  [" + rules.describe() + (withAlert ? "; " + alerts + " alert(s)" : "") + "]") + "\n"
-                + tables.renderStyled(oldestFirst, headers,
+        String summary = topic + "  showing " + oldestFirst.size() + " of " + page.scanned() + " scanned  (" + view + ", " + out + ")"
+                + (rules.isEmpty() ? "" : "  [" + rules.describe() + (withAlert ? "; " + alerts + " alert(s)" : "") + "]") + "\n";
+        return summary + switch (out) {
+            case PRETTY -> {
+                var tracker = new ChangeTracker();
+                yield oldestFirst.stream().map(m -> formatter.pretty(m, view, rules, tracker)).collect(Collectors.joining("\n\n"));
+            }
+            case JSON -> oldestFirst.stream().map(m -> formatter.json(m, view, rules)).collect(Collectors.joining("\n"));
+            case LINE -> {
+                int width = terminal.getWidth() > 0 ? terminal.getWidth() : 160;
+                yield oldestFirst.stream().map(m -> formatter.line(m, view, width, rules)).collect(Collectors.joining("\n"));
+            }
+            case TABLE -> {
+                String[] headers = formatter.headers(view, withAlert);
+                yield tables.renderStyled(oldestFirst, headers,
                         m -> rules.alertFor(m).map(r -> r.color().ansi).orElse(null),
                         columns(headers.length, view, valueWidth, rules));
+            }
+        };
     }
 
     @Command(name = "tail", group = "Messages", description = "Live tail of the topic; Enter stops it")
@@ -95,10 +120,12 @@ public class MessageCommands {
             @Option(longName = "partition", description = "Only this partition") Integer partition,
             @Option(longName = "key", description = "Key must contain") String key,
             @Option(longName = "value", description = "Value must contain") String value,
-            @Option(longName = "rate", description = "Max messages per second") Integer rate) throws IOException {
+            @Option(longName = "rate", description = "Max messages per second") Integer rate,
+            @Option(longName = "format", description = "pretty | json | line (table falls back to line)") String format) throws IOException {
         String topic = session.resolveTopic(name);
         ViewSettings view = session.view();
         RuleSet rules = session.rules();
+        OutputFormat out = resolveFormat(format);
         int effectiveRate = Math.min(rate != null ? rate : streamProperties.defaultRate(), streamProperties.maxRate());
         var query = new StreamQuery(partition, key, value, null, ValueFormat.AUTO, effectiveRate);
 
@@ -111,8 +138,13 @@ public class MessageCommands {
             throw e;
         }
         int width = terminal.getWidth() > 0 ? terminal.getWidth() : 160;
-        var sink = new TerminalSink(terminal.writer(), rules::passes, m -> formatter.line(m, view, width, rules),
-                m -> rules.alertFor(m).isPresent());
+        var tracker = new ChangeTracker();
+        Function<KafkaMessage, String> render = switch (out) {
+            case PRETTY -> m -> formatter.pretty(m, view, rules, tracker) + "\n";
+            case JSON -> m -> formatter.json(m, view, rules);
+            default -> m -> formatter.line(m, view, width, rules);
+        };
+        var sink = new TerminalSink(terminal.writer(), rules::passes, render, m -> rules.alertFor(m).isPresent());
         var loop = new LiveTail(consumer, sink, topic, partitions, query, decoder,
                 streamProperties.heartbeat(), streamProperties.lagSkipFactor(), System::nanoTime);
         Thread worker = Thread.ofVirtual().name("console-tail").start(loop);
@@ -141,13 +173,17 @@ public class MessageCommands {
     }
 
     @SuppressWarnings("unchecked")
-    private java.util.function.Function<KafkaMessage, Object>[] columns(int count, ViewSettings view, int valueWidth, RuleSet rules) {
-        java.util.function.Function<KafkaMessage, Object>[] cols = new java.util.function.Function[count];
+    private Function<KafkaMessage, Object>[] columns(int count, ViewSettings view, int valueWidth, RuleSet rules) {
+        Function<KafkaMessage, Object>[] cols = new Function[count];
         for (int i = 0; i < count; i++) {
             final int idx = i;
             cols[i] = m -> formatter.row(m, view, valueWidth, rules)[idx];
         }
         return cols;
+    }
+
+    private OutputFormat resolveFormat(String explicit) {
+        return explicit == null ? session.outputFormat() : OutputFormat.parse(explicit);
     }
 
     static List<String> parseFields(String spec) {

@@ -88,6 +88,8 @@ public class FilterAlertStep {
         conds.put("not-null", Condition.IS_NOT_NULL.name());
         conds.put("equals", Condition.EQUALS.name());
         conds.put("not-equals", Condition.NOT_EQUALS.name());
+        conds.put("is-one-of  (comma-separated values)", Condition.IN.name());
+        conds.put("is-none-of  (comma-separated values)", Condition.NOT_IN.name());
         conds.put("contains", Condition.CONTAINS.name());
         conds.put("greater-than", Condition.GREATER_THAN.name());
         conds.put("less-than", Condition.LESS_THAN.name());
@@ -95,7 +97,7 @@ public class FilterAlertStep {
 
         String value = null;
         if (condition.needsValue()) {
-            value = choices.text("Value", "");
+            value = choices.text(condition == Condition.IN || condition == Condition.NOT_IN ? "Values (comma-separated, e.g. c,u)" : "Value", "");
         }
         Rule r = new Rule(field, condition, value, color, null);
         return r.withLabel(r.describe());

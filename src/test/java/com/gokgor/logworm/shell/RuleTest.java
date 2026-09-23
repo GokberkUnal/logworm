@@ -58,6 +58,22 @@ class RuleTest {
     }
 
     @Test
+    void inMatchesAnyOfTheValues() {
+        var update = msg("k", "{\"op\":\"u\"}");
+        var delete = msg("k", "{\"op\":\"d\"}");
+        var none = msg("k", "{}");
+        Rule in = Rule.filter("op", Condition.IN, "c,u");
+        Rule notIn = Rule.filter("op", Condition.NOT_IN, "c,u");
+
+        assertThat(in.matches(update)).isTrue();
+        assertThat(in.matches(delete)).isFalse();
+        assertThat(in.matches(none)).isFalse();
+        assertThat(notIn.matches(update)).isFalse();
+        assertThat(notIn.matches(delete)).isTrue();
+        assertThat(notIn.matches(none)).isTrue();
+    }
+
+    @Test
     void parsesWhenSyntaxAndDefaultsLabel() {
         Rule r = Rule.parse("price", "null", Color.RED, null);
         assertThat(r.condition()).isEqualTo(Condition.IS_NULL);
@@ -71,6 +87,11 @@ class RuleTest {
         assertThat(eq.color()).isEqualTo(Color.NONE);
 
         assertThat(Rule.parse("k", "contains:a:b", null, null).value()).isEqualTo("a:b");
+        Rule in = Rule.parse("op", "in: c , u,", null, null);
+        assertThat(in.condition()).isEqualTo(Condition.IN);
+        assertThat(in.values()).containsExactly("c", "u");
+        assertThat(in.describe()).isEqualTo("op in (c, u)");
+        assertThat(Rule.parse("op", "notin:d", null, null).describe()).isEqualTo("op not in (d)");
         assertThat(Rule.parse("n", "GT:5", null, null).describe()).isEqualTo("n > 5");
 
         assertThatThrownBy(() -> Rule.parse("x", "eq", null, null)).hasMessageContaining("needs a value");

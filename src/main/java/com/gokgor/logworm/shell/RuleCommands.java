@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RuleCommands {
 
-    private static final String WHEN_HELP = "null | notnull | eq:X | ne:X | contains:X | gt:N | lt:N";
+    private static final String WHEN_HELP = "null | notnull | eq:X | ne:X | in:A,B | notin:A,B | contains:X | gt:N | lt:N";
 
     private final ShellSession session;
 

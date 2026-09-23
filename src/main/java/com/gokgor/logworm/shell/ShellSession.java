@@ -34,6 +34,14 @@ public class ShellSession {
         put(ViewSettings.SESSION_KEY, view);
     }
 
+    public OutputFormat outputFormat() {
+        return get(OutputFormat.SESSION_KEY, OutputFormat.class).orElse(OutputFormat.PRETTY);
+    }
+
+    public void setOutputFormat(OutputFormat format) {
+        put(OutputFormat.SESSION_KEY, format);
+    }
+
     public RuleSet rules() {
         return get(RuleSet.SESSION_KEY, RuleSet.class).orElse(RuleSet.empty());
     }
