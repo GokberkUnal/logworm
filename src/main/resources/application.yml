@@ -25,6 +25,7 @@ logworm:
   demo-producer:
     enabled: true
     topic: demo-logs
+    cdc-topic: demo-cdc
   kafka:
     request-timeout: 5s
   stream:

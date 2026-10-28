@@ -11,7 +11,7 @@ class MessageCommandsParseTest {
     void parsesOutputFormats() {
         assertThat(OutputFormat.parse(" Json ")).isEqualTo(OutputFormat.JSON);
         assertThat(OutputFormat.parse("line")).isEqualTo(OutputFormat.LINE);
-        assertThatThrownBy(() -> OutputFormat.parse("xml")).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("pretty, table, json or line");
+        assertThatThrownBy(() -> OutputFormat.parse("xml")).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("pretty, table, json, line or cdc");
         assertThat(OutputFormat.TABLE.toString()).isEqualTo("table");
     }
 

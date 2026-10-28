@@ -59,8 +59,8 @@ public class MessageCommands {
         return "View: " + v;
     }
 
-    @Command(name = "format", group = "Messages", description = "Show or change how messages are printed: --set pretty|table|json|line")
-    public String format(@Option(longName = "set", description = "pretty | table | json | line") String set) {
+    @Command(name = "format", group = "Messages", description = "Show or change how messages are printed: --set pretty|table|json|line|cdc")
+    public String format(@Option(longName = "set", description = "pretty | table | json | line | cdc") String set) {
         if (set != null) {
             session.setOutputFormat(OutputFormat.parse(set));
         }
@@ -74,7 +74,7 @@ public class MessageCommands {
             @Option(longName = "partition", description = "Only this partition") Integer partition,
             @Option(longName = "key", description = "Key must contain") String key,
             @Option(longName = "value", description = "Value must contain") String value,
-            @Option(longName = "format", description = "pretty | table | json | line (defaults to the selected format)") String format) {
+            @Option(longName = "format", description = "pretty | table | json | line | cdc (defaults to the selected format)") String format) {
         String topic = session.resolveTopic(name);
         ViewSettings view = session.view();
         RuleSet rules = session.rules();
@@ -100,6 +100,10 @@ public class MessageCommands {
                 var tracker = new ChangeTracker();
                 yield oldestFirst.stream().map(m -> formatter.pretty(m, view, rules, tracker)).collect(Collectors.joining("\n\n"));
             }
+            case CDC -> {
+                var tracker = new ChangeTracker();
+                yield oldestFirst.stream().map(m -> formatter.cdc(m, view, rules, tracker)).collect(Collectors.joining("\n\n"));
+            }
             case JSON -> oldestFirst.stream().map(m -> formatter.json(m, view, rules)).collect(Collectors.joining("\n"));
             case LINE -> {
                 int width = terminal.getWidth() > 0 ? terminal.getWidth() : 160;
@@ -121,7 +125,7 @@ public class MessageCommands {
             @Option(longName = "key", description = "Key must contain") String key,
             @Option(longName = "value", description = "Value must contain") String value,
             @Option(longName = "rate", description = "Max messages per second") Integer rate,
-            @Option(longName = "format", description = "pretty | json | line (table falls back to line)") String format) throws IOException {
+            @Option(longName = "format", description = "pretty | json | line | cdc (table falls back to line)") String format) throws IOException {
         String topic = session.resolveTopic(name);
         ViewSettings view = session.view();
         RuleSet rules = session.rules();
@@ -141,6 +145,7 @@ public class MessageCommands {
         var tracker = new ChangeTracker();
         Function<KafkaMessage, String> render = switch (out) {
             case PRETTY -> m -> formatter.pretty(m, view, rules, tracker) + "\n";
+            case CDC -> m -> formatter.cdc(m, view, rules, tracker) + "\n";
             case JSON -> m -> formatter.json(m, view, rules);
             default -> m -> formatter.line(m, view, width, rules);
         };

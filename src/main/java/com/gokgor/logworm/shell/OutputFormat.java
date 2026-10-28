@@ -9,7 +9,9 @@ public enum OutputFormat {
     /** One JSON object per line (partition, offset, timestamp, key, value or the selected fields, alert). */
     JSON,
     /** One compact text line per message: {@code p1@1203 12:04:33.209 key  value}. */
-    LINE;
+    LINE,
+    /** Change-data-capture events (Debezium envelope): operation, table and changed columns as {@code before --> after}. */
+    CDC;
 
     static final String SESSION_KEY = "format";
 
@@ -17,7 +19,7 @@ public enum OutputFormat {
         try {
             return valueOf(s.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Unknown format '" + s + "'; use pretty, table, json or line");
+            throw new IllegalArgumentException("Unknown format '" + s + "'; use pretty, table, json, line or cdc");
         }
     }
 

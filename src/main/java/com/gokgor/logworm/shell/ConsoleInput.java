@@ -33,7 +33,6 @@ final class ConsoleInput {
                     long before = System.currentTimeMillis();
                     int c = terminal.reader().read();
                     long waited = System.currentTimeMillis() - before;
-                    System.err.println("DEBUG read c=" + c + " waited=" + waited + "ms");
                     if (c < 0 || waited >= LEFTOVER_WINDOW_MILLIS) {
                         break;
                     }

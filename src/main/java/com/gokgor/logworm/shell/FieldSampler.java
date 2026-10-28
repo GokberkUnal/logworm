@@ -24,6 +24,12 @@ public class FieldSampler {
         return MessageFormatter.discoverFields(page.messages());
     }
 
+    /** True when most JSON messages among the last {@value SAMPLE} are CDC events (Debezium envelope). */
+    public boolean looksLikeCdc(String topic) {
+        var page = messageService.read(topic, new MessageQuery(null, null, SAMPLE, null, null, null, ValueFormat.AUTO));
+        return CdcEvent.looksLikeCdc(page.messages());
+    }
+
     /** Same, with {@code key} first so rules can target the record key. */
     public List<String> sampleWithKey(String topic) {
         List<String> fields = new ArrayList<>();

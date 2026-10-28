@@ -126,6 +126,107 @@ public class MessageFormatter {
         return alert.map(r -> r.color().ansi + text + Rule.Color.RESET).orElse(text);
     }
 
+    /**
+     * One block per CDC event:
+     * <pre>
+     * 14:03:44.614  UPDATE  inventory.customers  key={"id":1001}  p0@42
+     *   email   ann@old.io --> ann@new.io
+     *   (4 unchanged)
+     * </pre>
+     * Inserts and snapshot reads list the new row, deletes the old one, updates only the changed
+     * columns (all of them when the source sends no before image). The operation is colored
+     * (insert green, update yellow, delete red, snapshot cyan) unless an alert colors the whole
+     * block. Selected view fields narrow the columns ({@code after.email} and {@code email} both
+     * select {@code email}). Messages that are not CDC events fall back to {@link #pretty}; a
+     * tombstone (null value) prints just its header.
+     */
+    public String cdc(KafkaMessage m, ViewSettings view, RuleSet rules, ChangeTracker tracker) {
+        var event = CdcEvent.parse(m);
+        if (event.isEmpty() && m.value() != null) {
+            return pretty(m, view, rules, tracker);
+        }
+        var alert = rules == null ? java.util.Optional.<Rule>empty() : rules.alertFor(m);
+        var sb = new StringBuilder(TIME.format(m.timestamp())).append("  ");
+        if (event.isEmpty()) {
+            sb.append("TOMBSTONE");
+        } else {
+            String op = event.get().op().name();
+            sb.append(alert.isPresent() ? op : event.get().op().color().ansi + op + Rule.Color.RESET);
+            if (event.get().table() != null) {
+                sb.append("  ").append(event.get().table());
+            }
+        }
+        sb.append("  key=").append(m.key() == null ? "-" : m.key())
+                .append("  p").append(m.partition()).append('@').append(m.offset());
+        alert.ifPresent(r -> sb.append("  [").append(r.label()).append(']'));
+        event.ifPresent(e -> appendCdcBody(sb, e, cdcColumns(view)));
+        String text = sb.toString();
+        return alert.map(r -> r.color().ansi + text + Rule.Color.RESET).orElse(text);
+    }
+
+    private static void appendCdcBody(StringBuilder sb, CdcEvent e, Set<String> only) {
+        List<String[]> lines = new ArrayList<>();
+        String note = null;
+        switch (e.op()) {
+            case INSERT, SNAPSHOT -> rowLines(e.after(), only, lines);
+            case DELETE -> {
+                if (e.before() == null) {
+                    note = "(no before image)";
+                } else {
+                    rowLines(e.before(), only, lines);
+                }
+            }
+            case UPDATE -> {
+                if (e.before() == null || e.after() == null) {
+                    rowLines(e.after(), only, lines);
+                    note = "(no before image; all columns shown)";
+                } else {
+                    var changes = e.changes().stream().filter(c -> only.isEmpty() || only.contains(c.column())).toList();
+                    for (var c : changes) {
+                        lines.add(new String[] {c.column(),
+                                (c.before() == null ? "(absent)" : c.before()) + " --> " + (c.after() == null ? "(removed)" : c.after())});
+                    }
+                    long shownColumns = e.after().keySet().stream().filter(k -> only.isEmpty() || only.contains(k)).count();
+                    long unchanged = shownColumns - changes.stream().filter(c -> c.after() != null).count();
+                    note = changes.isEmpty() ? "(no column changed)" : unchanged > 0 ? "(" + unchanged + " unchanged)" : null;
+                }
+            }
+            case TRUNCATE -> { }
+        }
+        int width = lines.stream().mapToInt(l -> l[0].length()).max().orElse(0);
+        for (String[] l : lines) {
+            sb.append("\n  ").append(l[0]).append(" ".repeat(width - l[0].length() + 2)).append(l[1]);
+        }
+        if (note != null) {
+            sb.append("\n  ").append(note);
+        }
+    }
+
+    private static void rowLines(Map<String, String> row, Set<String> only, List<String[]> lines) {
+        if (row == null) {
+            return;
+        }
+        row.forEach((col, v) -> {
+            if (only.isEmpty() || only.contains(col)) {
+                lines.add(new String[] {col, v});
+            }
+        });
+    }
+
+    /** View fields as row column names: {@code payload.after.email}, {@code after.email} → {@code email}; envelope fields are dropped. */
+    static Set<String> cdcColumns(ViewSettings view) {
+        Set<String> columns = new LinkedHashSet<>();
+        for (String f : view.fields()) {
+            String c = f.startsWith("payload.") ? f.substring("payload.".length()) : f;
+            if (c.startsWith("after.") || c.startsWith("before.")) {
+                columns.add(c.substring(c.indexOf('.') + 1));
+            } else if (!c.contains(".") && !List.of("op", "before", "after", "source", "ts_ms", "transaction", "schema").contains(c)) {
+                columns.add(c);
+            }
+        }
+        return columns;
+    }
+
     /** Field name → display value: the selected fields, else all flattened JSON fields, else {@code value}. */
     static Map<String, String> fieldValues(KafkaMessage m, ViewSettings view) {
         Map<String, String> values = new LinkedHashMap<>();
