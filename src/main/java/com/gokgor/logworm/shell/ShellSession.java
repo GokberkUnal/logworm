@@ -18,6 +18,10 @@ public class ShellSession {
         values.put(key, value);
     }
 
+    public void remove(String key) {
+        values.remove(key);
+    }
+
     public <T> Optional<T> get(String key, Class<T> type) {
         return Optional.ofNullable(values.get(key)).map(type::cast);
     }

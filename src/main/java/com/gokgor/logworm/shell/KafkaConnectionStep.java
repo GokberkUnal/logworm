@@ -35,25 +35,36 @@ public class KafkaConnectionStep {
     void ask(PrintStream out) {
         while (true) {
             String servers = pickAddress(out);
-            out.print("Connecting to " + servers + " ... ");
-            out.flush();
-            try {
-                KafkaConnection.Info info = servers.equals(connection.info().bootstrapServers())
-                        ? connection.verify()
-                        : connection.connect(servers);
-                out.println("ok  (cluster " + info.clusterId() + ", " + info.brokerCount() + " broker"
-                        + (info.brokerCount() == 1 ? "" : "s") + ")");
-                recent.remember(servers);
+            if (connectTo(servers, out)) {
+                return;
+            }
+            if (!choices.confirm("Try another address?", true)) {
+                out.println("Continuing without a verified connection; use 'connect --servers <host:port>' later.");
                 session.put(SESSION_KEY, servers);
                 return;
-            } catch (RuntimeException e) {
-                out.println("failed: " + rootMessage(e));
-                if (!choices.confirm("Try another address?", true)) {
-                    out.println("Continuing without a verified connection; use 'connect --servers <host:port>' later.");
-                    session.put(SESSION_KEY, servers);
-                    return;
-                }
             }
+        }
+    }
+
+    /**
+     * Connects (or re-verifies when already pointed there), printing the outcome. On success the
+     * address is remembered and stored in the session; on failure the previous connection stays.
+     */
+    boolean connectTo(String servers, PrintStream out) {
+        out.print("Connecting to " + servers + " ... ");
+        out.flush();
+        try {
+            KafkaConnection.Info info = servers.equals(connection.info().bootstrapServers())
+                    ? connection.verify()
+                    : connection.connect(servers);
+            out.println("ok  (cluster " + info.clusterId() + ", " + info.brokerCount() + " broker"
+                    + (info.brokerCount() == 1 ? "" : "s") + ")");
+            recent.remember(servers);
+            session.put(SESSION_KEY, servers);
+            return true;
+        } catch (RuntimeException e) {
+            out.println("failed: " + rootMessage(e));
+            return false;
         }
     }
 

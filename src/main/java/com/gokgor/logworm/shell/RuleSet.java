@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gokgor.logworm.message.KafkaMessage;
 
 /**
@@ -17,6 +18,7 @@ public record RuleSet(List<Rule> filters, List<Rule> alerts) {
         return new RuleSet(List.of(), List.of());
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
         return filters.isEmpty() && alerts.isEmpty();
     }
